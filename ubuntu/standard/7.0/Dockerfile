@@ -606,3 +606,14 @@ COPY amazon-ssm-agent.json /etc/amazon/ssm/amazon-ssm-agent.json
 ENTRYPOINT ["/usr/local/bin/dockerd-entrypoint.sh"]
 
 #=======================END of STD:7.0  =================
+
+# Add the content of this file to the end of AWS's Dockerfile for Ubuntu
+# standard build file to get a working Docker image with Postgres 14 added.
+
+# Install postgres
+RUN apt update && apt install -y postgresql
+
+# Replace the default postgres access file by one that grants
+# all access to local user on server (to make it easy to setup
+# the db from the root user account).
+COPY pg_hba.conf /etc/postgresql/14/main/pg_hba.conf
