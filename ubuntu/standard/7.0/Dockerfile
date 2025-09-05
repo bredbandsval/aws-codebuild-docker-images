@@ -344,33 +344,6 @@ ENV N_PRESERVE_NPM=1 \
     N_PRESERVE_COREPACK=1
 #****************      END NODEJS     ****************************************************
 
-#**************** RUBY *********************************************************
-
-#rubyenv
-ENV RBENV_SRC_DIR="/usr/local/rbenv"
-
-ENV PATH="/root/.rbenv/shims:$RBENV_SRC_DIR/bin:$RBENV_SRC_DIR/shims:$PATH" \
-    RUBY_BUILD_SRC_DIR="$RBENV_SRC_DIR/plugins/ruby-build"
-
-RUN set -ex \
-    && git clone https://github.com/rbenv/rbenv.git $RBENV_SRC_DIR \
-    && mkdir -p $RBENV_SRC_DIR/plugins \
-    && git clone https://github.com/rbenv/ruby-build.git $RUBY_BUILD_SRC_DIR \
-    && sh $RUBY_BUILD_SRC_DIR/install.sh
-
-ENV RUBY_34_VERSION="3.4.1" \
-    RUBY_33_VERSION="3.3.6" \
-    RUBY_32_VERSION="3.2.6" \
-    RUBY_31_VERSION="3.1.6"
-
-RUN rbenv install $RUBY_34_VERSION \
-    && rbenv install $RUBY_33_VERSION \
-    && rbenv install $RUBY_32_VERSION \
-    && rbenv install $RUBY_31_VERSION \
-    && rbenv global $RUBY_32_VERSION && ruby -v \
-    && rm -rf /tmp/*
-#**************** END RUBY *****************************************************
-
 #**************** PYTHON *****************************************************
 
 #Install pyenv
@@ -438,53 +411,6 @@ RUN set -ex \
     && pip3 uninstall cython --yes \
     && rm -rf /tmp/*
 #**************** END PYTHON *****************************************************
-
-#****************      PHP     ****************************************************
-
-#phpenv
-RUN curl -L https://raw.githubusercontent.com/phpenv/phpenv-installer/master/bin/phpenv-installer | bash
-ENV PATH="/root/.phpenv/shims:/root/.phpenv/bin:$PATH"
-
-ENV PHP_83_VERSION="8.3.13" \
-    PHP_82_VERSION="8.2.25"
-# Set environment variables for PHP configure options
-ENV PHP_BUILD_CONFIGURE_OPTS="--with-curl --with-password-argon2 --with-pdo-pgsql --with-libedit"
-# Set make arguments to use 4 parallel jobs.
-ENV PHP_BUILD_EXTRA_MAKE_ARGUMENTS="-j4"
-
-RUN phpenv update \
-    && phpenv install $PHP_83_VERSION \
-    && phpenv install $PHP_82_VERSION \
-    && phpenv global $PHP_82_VERSION \
-    && php -v \
-    && echo "memory_limit = 1G;" >> "/root/.phpenv/versions/$PHP_83_VERSION/etc/conf.d/memory.ini" \
-    && echo "memory_limit = 1G;" >> "/root/.phpenv/versions/$PHP_82_VERSION/etc/conf.d/memory.ini" \
-    && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin --filename=composer \
-    && rm -rf /tmp/*
-#****************      END PHP     ****************************************************
-
-#****************     GOLANG     ****************************************************
-
-#goenv
-RUN git clone https://github.com/syndbg/goenv.git $HOME/.goenv
-ENV PATH="/root/.goenv/shims:/root/.goenv/bin:/go/bin:$PATH"
-
-ENV GOLANG_23_VERSION="1.23.4" \
-    GOLANG_22_VERSION="1.22.10" \
-    GOLANG_21_VERSION="1.21.13" \
-    GOLANG_20_VERSION="1.20.14"
-ENV GOENV_DISABLE_GOPATH=1 \
-    GOPATH="/go"
-
-RUN goenv install $GOLANG_23_VERSION \
-    && goenv install $GOLANG_22_VERSION \
-    && goenv install $GOLANG_21_VERSION \
-    && goenv install $GOLANG_20_VERSION \
-    && goenv global $GOLANG_20_VERSION \
-    && go env -w GO111MODULE=auto \
-    && go get -u github.com/golang/dep/cmd/dep \
-    && rm -rf /tmp/*
-#****************      END GOLANG     *******************************
 
 #****************      JAVA     ****************************************************
 ENV JAVA_21_HOME="/usr/lib/jvm/java-21-amazon-corretto" \
@@ -590,9 +516,6 @@ FROM runtimes AS std_v7
 # Activate runtime versions specific to image version.
 RUN n --preserve $NODE_18_VERSION
 RUN pyenv global $PYTHON_311_VERSION
-RUN phpenv global $PHP_82_VERSION
-RUN rbenv global $RUBY_32_VERSION
-RUN goenv global $GOLANG_20_VERSION
 RUN dotnet new globaljson --force --sdk-version $DOTNET_6_GLOBAL_JSON_SDK_VERSION --roll-forward feature
 
 # Configure SSH
